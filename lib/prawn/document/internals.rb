@@ -6,8 +6,6 @@
 #
 # This is free software. Please see the LICENSE and COPYING files for details.
 
-require 'forwardable'
-
 module Prawn
   class Document
     # This module exposes a few low-level PDF features for those who want
@@ -17,16 +15,13 @@ module Prawn
     #
     # @private
     module Internals
-      extend Forwardable
 
       # These methods are not officially part of Prawn's public API,
       # but they are used in documentation and possibly in extensions.
       # Perhaps they will become part of the extension API?
       # Anyway, for now it's not clear what we should do w. them.
-      delegate [
-        :graphic_state,
-        :on_page_create
-      ] => :renderer
+      delegate :graphic_state, to: :renderer
+      delegate :on_page_create, to: :renderer
 
       def save_graphics_state(state = nil, &block)
         save_transformation_stack
@@ -44,20 +39,22 @@ module Prawn
       #
       # A proper design would probably not require Prawn to directly instantiate
       # PDF::Core::Page objects at all!
-      delegate [:compression_enabled?] => :renderer
+      delegate :compression_enabled?, to: :renderer
 
       # FIXME: More circular references in PDF::Core::Page.
-      delegate [:ref, :ref!, :deref] => :renderer
+      delegate :ref, to: :renderer
+      delegate :ref!, to: :renderer
+      delegate :deref, to: :renderer
 
       # FIXME: Another circular reference, because we mix in a module from
       # PDF::Core to provide destinations, which in theory should not
       # rely on a Prawn::Document object but is currently wired up that way.
-      delegate [:names] => :renderer
+      delegate :names, to: :renderer
 
       # FIXME: Circular reference because we mix PDF::Core::Text into
       # Prawn::Document. PDF::Core::Text should either be split up or
       # moved in its entirety back up into Prawn.
-      delegate [:add_content] => :renderer
+      delegate :add_content, to: :renderer
 
       def renderer
         @renderer ||= PDF::Core::Renderer.new(state)
